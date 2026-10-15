@@ -1,0 +1,29 @@
+Broche ‚cran;Fonction;Broche Pico 2;Nø physique Pico
+1 et 17;3,3 V;3V3(OUT);36
+2 et 4;5 V;VBUS (si aliment‚ par USB);40
+6, 9, 14, 20 ou 25;Masse (GND);GND;23, par exemple
+19 ? MOSI;Donn‚es SPI vers ‚cran;GP19;25
+21 ? MISO;Donn‚es SPI depuis le tactile;GP16;21
+23 ? SCK;Horloge SPI;GP18;24
+24 ? CE0;S‚lection de l'‚cran (LCD_CS);GP17;22
+26 ? CE1;S‚lection du tactile (TP_CS);GP20;26
+15 ? P3;Commande/donn‚es (DC);GP22;29
+13 ? P2;R‚initialisation (RESET);GP21;27
+11 ? P0;Interruption tactile (TP_IRQ);GP15;20
+;;;
+Ces correspondances respectent les fonctions des broches de ce modŠle d'‚cran. ;;;
+;;;
+LCD wiki;;;
+;;;
+2. Broches facultatives;;;
+;;;
+Les trois boutons pr‚sents sur certaines versions de la carte peuvent aussi ˆtre raccord‚s :;;;
+;;;
+Broche ‚cran;Fonction;Pico 2;
+12 ? P1;Bouton KEY1;GP14;
+16 ? P4;Bouton KEY2;GP13;
+18 ? P5;Bouton KEY3;GP12;
+;;;
+Tu peux laisser ces trois broches d‚connect‚es si tu ne comptes pas utiliser les boutons.;;;
+;;;
+Les broches ‚cran 3 (SDA), 5 (SCL), 7 (P7), 8 (TX), 10 (RX) et 22 (P6) ne sont pas utilis‚es par cette carte dans le montage document‚ : laisse-les libres. Attention, les mentions P0, P1, P2, etc. imprim‚es sur l'‚cran ne d‚signent pas les GPIO ‚quivalents du Pico.;;;
