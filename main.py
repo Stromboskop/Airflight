@@ -254,6 +254,15 @@ def draw_north_arrow():
     fb.text("N", 14, 40, WHITE)
 
 
+PLANE_SHAPES = (
+    ((10, 0), (6, 2), (-8, 1.5), (-8, -1.5), (6, -2)),      # fuselage
+    ((2, 1), (-3, 9), (-5, 9), (-3, 1)),                    # aile droite
+    ((2, -1), (-3, -9), (-5, -9), (-3, -1)),                # aile gauche
+    ((-5, 1), (-8, 4.5), (-9, 4.5), (-8, 1)),               # stabilisateur droit
+    ((-5, -1), (-8, -4.5), (-9, -4.5), (-8, -1)),           # stabilisateur gauche
+)
+
+
 def draw_plane(p, selected):
     x, y = screen_xy(p["e"], p["n"])
     if not in_radar(x, y):
@@ -269,13 +278,14 @@ def draw_plane(p, selected):
     dx, dy = math.sin(h), -math.cos(h)
     km = p["spd"] * 1.852 * PREDICT_MIN / 60
     fb.line(x, y, int(x + dx * km * PX_PER_KM), int(y + dy * km * PX_PER_KM), color)
-    # triangle oriente selon le cap
+    # silhouette d'avion orientee selon le cap (f = vers l'avant, s = vers la droite)
     px, py = -dy, dx
-    fb.poly(0, 0, array("h", [
-        int(x + dx * 7), int(y + dy * 7),
-        int(x - dx * 5 + px * 4), int(y - dy * 5 + py * 4),
-        int(x - dx * 5 - px * 4), int(y - dy * 5 - py * 4),
-    ]), color, True)
+    for shape in PLANE_SHAPES:
+        pts = array("h")
+        for f, s in shape:
+            pts.append(int(x + dx * f + px * s))
+            pts.append(int(y + dy * f + py * s))
+        fb.poly(0, 0, pts, color, True)
     if selected:
         fb.ellipse(x, y, 11, 11, YELLOW)
 
