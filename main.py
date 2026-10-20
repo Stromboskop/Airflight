@@ -119,7 +119,7 @@ def get_json(url):
     r = requests.get(url, headers={"User-Agent": "airflight-pico"})
     try:
         if r.status_code != 200:
-            return None
+            raise RuntimeError("HTTP %d" % r.status_code)
         return r.json()
     finally:
         r.close()
@@ -133,10 +133,16 @@ def to_km(lat, lon):
 
 def fetch_aircraft():
     # On charge toujours la plus grande echelle ; le zoom ne fait que recadrer
-    url = "https://api.adsb.lol/v2/point/%s/%s/%s" % (HOME_LAT, HOME_LON, max(SCALES_NM))
+    url = "https://opendata.adsb.fi/api/v3/lat/%s/lon/%s/dist/%s" % (
+        HOME_LAT, HOME_LON, max(SCALES_NM))
     data = get_json(url)
+    if not isinstance(data, dict):
+        raise ValueError("Reponse API invalide")
+    aircraft = data.get("ac")
+    if not isinstance(aircraft, list):
+        raise ValueError("Champ ac invalide")
     planes, seen = [], set()
-    for a in (data or {}).get("ac", []):
+    for a in aircraft:
         alt = a.get("alt_baro")
         if "lat" not in a or "lon" not in a or alt == "ground":
             continue
@@ -379,7 +385,7 @@ def main():
         except Exception as e:
             print("fetch", e)
             message("Erreur reseau", str(e)[:30], RED)
-            time.sleep(10)
+            time.sleep(secrets.UPDATE_INTERVAL_SECONDS)
             continue
         if planes and sel not in [p["hex"] for p in planes]:
             sel = planes[0]["hex"]

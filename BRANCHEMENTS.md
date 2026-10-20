@@ -28,8 +28,9 @@ Les mentions P0, P1... sur l'écran ne correspondent pas aux GPIO du Pico.
 Rétro-éclairage non piloté (toujours allumé). Si trop faible : 5 V (broche 2/4) sur VBUS (40).
 
 ## API (gratuites, sans clé)
-- Positions : `https://api.adsb.lol/v2/point/{lat}/{lon}/{rayon_NM}` (rayon fixé à 45 NM, le zoom recadre)
+- Positions : `https://opendata.adsb.fi/api/v3/lat/{lat}/lon/{lon}/dist/{rayon_NM}` (limite publique annoncée : 1 requête/s ; rayon fixé à 45 NM, le zoom recadre)
 - Trajet par indicatif : `https://api.adsbdb.com/v0/callsign/{indicatif}`
+- L'API de positions est fournie par [adsb.fi](https://adsb.fi), pour un usage personnel non commercial ; créditer adsb.fi et inclure un lien vers son site. Le service demande de contribuer en hébergeant un récepteur. Les erreurs HTTP s'affichent comme « Erreur reseau » au lieu d'être confondues avec un ciel vide.
 
 ## Installation
 1. Flasher MicroPython pour Pico 2 W.
