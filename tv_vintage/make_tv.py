@@ -1,6 +1,6 @@
 """Génère les STL de la TV vintage Airflight (mm).
 Repère: x=largeur, y=profondeur (face avant y=0), z=hauteur (0 = centre du boîtier).
-Carte écran 2.4" RPi Display (76 x 51 mm) avec boutons K1..K3 sur le bord gauche.
+Carte écran 2.4" RPi Display (76 x 51 mm), sans ouvertures pour les boutons.
 """
 import os
 import numpy as np
@@ -8,25 +8,14 @@ import trimesh
 from trimesh.creation import box, cylinder, cone
 
 # ===================== PARAMÈTRES À RÉGLER =====================
-# Hauteur des 3 boutons K1, K2, K3: distance (mm) depuis le BORD HAUT de la carte
-# (mesuré sur la photo: ~12, 26, 40 mm). Modifie ici si les trous ne tombent pas pile.
-BTN_SPACING = 7.8            # espace entre deux boutons (bord à bord)
-BTN_Z_PITCH = BTN_SPACING + 6.0   # entraxe = espace + hauteur du bouton; K2 au centre de la carte
-BTN_Z_OFFSET = 0.0           # >0 remonte les 3 boutons, <0 les descend
-BTN_Z_FROM_TOP = None        # ou liste manuelle [K1, K2, K3] en mm depuis le bord haut de la carte
 LEG_TILT_DEG = 12.0          # inclinaison des pieds vers l'extérieur (0 = droits)
-BTN_W, BTN_H = 3.5, 6.0      # taille réelle des boutons (x, z)
-BTN_CLEAR = 0.3              # jeu autour des boutons
-BTN_HOLE_W = BTN_W + BTN_CLEAR
-BTN_HOLE_H = BTN_H + BTN_CLEAR
-BTN_GAP_TO_GLASS = 1.8       # bord du bouton -> bord de la dalle
 PICO_SHIFT = 8.0             # plots du Pico rapprochés du centre du couvercle (x et z)
 LEG_LEN = 70.0               # longueur des pieds
 LEG_TIP_R = 2.5              # rayon du bout tronqué des pieds
 
 CARD_W, CARD_H = 76.0, 51.0  # carte écran
-GLASS_W, GLASS_H = 58.5, 44.5  # dalle visible (fenêtre), réduite de 3 mm côté opposé aux boutons
-GLASS_DX, GLASS_DZ = -0.3, 3.0  # décalage du centre de la dalle / centre carte (+x droite, +z haut)
+GLASS_W, GLASS_H = 69.0, 44.5  # fenêtre agrandie de 7 mm à gauche et 3,5 mm côté haut-parleur
+GLASS_DX, GLASS_DZ = -2.05, 3.0  # décalage du centre de la fenêtre / centre carte (+x droite, +z haut)
 
 MARGIN_L = 10.0              # espace entre carte et paroi gauche (intérieur)
 MARGIN_R = 10.0              # espace entre carte et paroi droite (1 cm)
@@ -91,25 +80,20 @@ body = diff(body, bx(W - 2 * T, D - FRONT + 1, H - 2 * T, 0, FRONT + (D - FRONT 
 # fenêtre de la dalle
 body = diff(body, bx(GLASS_W, 10, GLASS_H, CX + GLASS_DX, 0, CZ + GLASS_DZ))
 
-# grille de haut-parleur (côté opposé aux boutons), à droite du bord de la carte
-GRILLE_W, GRILLE_SLOT_H, GRILLE_PITCH, GRILLE_N = 7.0, 1.6, 3.6, 11
-GRILLE_X = CX + CARD_W / 2 + (W / 2 - T - CARD_W / 2 - CX) / 2
+# grille de haut-parleur : marges égales entre la fenêtre, les fentes et le bord droit extérieur
+GRILLE_SLOT_H, GRILLE_PITCH, GRILLE_N = 1.6, 3.6, 13
+GLASS_RIGHT = CX + GLASS_DX + GLASS_W / 2
+GRILLE_EDGE_GAP = 3.5
+GRILLE_W = W / 2 - GLASS_RIGHT - 2 * GRILLE_EDGE_GAP
+GRILLE_X = (GLASS_RIGHT + W / 2) / 2
 for i in range(GRILLE_N):
-    gz = (i - (GRILLE_N - 1) / 2) * GRILLE_PITCH
-    body = diff(body, bx(GRILLE_W, 10, GRILLE_SLOT_H, GRILLE_X, 0, CZ + gz))
+    gz = CZ + GLASS_DZ + (i - (GRILLE_N - 1) / 2) * GRILLE_PITCH
+    body = diff(body, bx(GRILLE_W, 10, GRILLE_SLOT_H, GRILLE_X, 0, gz))
 
-# trous des 3 boutons de la carte (appui direct au doigt)
-card_left = CX - CARD_W / 2
-card_top = CZ + CARD_H / 2
-glass_left = CX + GLASS_DX - GLASS_W / 2
-BTN_X = glass_left - BTN_GAP_TO_GLASS - BTN_W / 2   # axe des boutons (repère boîtier)
-if BTN_Z_FROM_TOP is None:
-    BTN_Z_FROM_TOP = [CARD_H / 2 - GLASS_DZ - BTN_Z_OFFSET + k * BTN_Z_PITCH for k in (-1, 0, 1)]   # K2 centré sur la dalle
-for zt in BTN_Z_FROM_TOP:
-    body = diff(body, bx(BTN_HOLE_W, 10, BTN_HOLE_H, BTN_X, 0, card_top - zt))
-
-# ouverture USB du Pico (paroi droite)
-body = diff(body, bx(T * 3, 14, 9, W / 2, D - 22, -(H / 2 - T - 14) + PICO_SHIFT))
+# ouverture USB sur le dessous, du côté des grilles de haut-parleur
+USB_OPENING_W, USB_OPENING_D = 18.0, 12.0
+USB_OPENING_X = W / 2 - T - USB_OPENING_W / 2 - 0.5
+body = diff(body, bx(USB_OPENING_W, USB_OPENING_D, T * 3, USB_OPENING_X, D / 2, -H / 2))
 # douilles des pieds
 LEG_X = W / 2 - 14
 for sx in (-LEG_X, LEG_X):
